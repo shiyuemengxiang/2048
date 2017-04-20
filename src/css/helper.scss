@@ -1,0 +1,61 @@
+/*According to the base generation n power*/
+/*like Math.pow(base, exponent)*/
+@function exponent($base, $exponent) {
+    $value: $base;
+    @if $exponent > 1 {
+        @for $i from 2 through $exponent {
+            $value: $value * $base;
+        }
+    }
+    @if $exponent < 1 {
+        @for $i from 0 through -$exponent {
+            $value: $value / $base;
+        }
+    }
+    @return $value;
+}
+
+@function pow($base, $exponent) {
+    @return exponent($base, $exponent);
+}
+/*transition mixins*/
+
+@mixin animation($args...) {
+    -webkit-animation: $args;
+    animation: $args;
+}
+@mixin animtaion-fill-mode($args...) {
+    -webkit-animation-fill-mode: $args;
+    animation-fill-mode: $args;
+}
+@mixin transform($args...) {
+    -webkit-transform: $args;
+            transform: $args;
+}
+/*keyframe animation*/
+@mixin keyframes($args) {
+    @-webkit-keyframes #{$args} {
+        @content;
+    }
+    @keyframes #{$args} {
+        @content;
+    }
+}
+@mixin box-sizing($args) {
+    -webkit-box-sizing: $args;
+    -moz-box-sizing: $args;
+    box-sizing: $args;
+}
+/*Media queries*/
+@mixin smaller($width) {
+    @media screen and (max-width: $width) {
+        @content;
+    }
+}
+@mixin clearfix {
+    &:after{
+        content: '';
+        display: block;
+        clear: both;
+    }
+}

@@ -1,0 +1,328 @@
+@import "helper";
+
+$field-width: 500px;
+$grid-spacing: 15px;
+$grid-row-cell: 4;
+
+$tile-size: ($field-width - $grid-spacing * ($grid-row-cell + 1)) / 4;
+$text-color: rgb(117, 108, 99);
+$bright-text-color: #f9f6f2;
+$tile-color: #eee4da;
+$tile-gold-color: #edc22e;
+$background-color: rgb(250, 248, 239);
+$game-container-background: #bbada0;
+$game-container-margin-top: 40px;
+$tile-border-radius: 3px;
+$transition-speed: 100ms;
+$mobile: $field-width + 20px;
+html,body{
+    margin: 0;
+    font-family: Arial, sans-serif;
+    color: $text-color;
+    font-size: 18px;
+}
+body{
+    background: $background-color;
+    margin: 80px 0;
+}
+.container{
+    width: $field-width;
+    margin: 0 auto;
+    @include clearfix;
+}
+header{
+    @include clearfix;
+}
+.title{
+    float: left;
+    h1{
+        font-size: 80px;
+        margin: 0;
+    }
+}
+.score-container{
+    float: right;
+}
+.game-score, .best-score{
+    $height: 25px;
+    display: inline-block;
+    position: relative;
+    padding: 15px 25px;
+    line-height: $height + 22px;
+    font-weight: bold;
+    font-size: 25px;
+    height: $height;
+    background: $game-container-background;
+    border-radius: $tile-border-radius;
+    margin-top: 8px;
+    color: #fff;
+    &:after{
+        position: absolute;
+        top: 10px;
+        left: 0;
+        width: 100%;
+        font-size: 13px;
+        line-height: 13px;
+        color: $tile-color;
+        text-align: center;
+        text-transform: uppercase;
+    }
+}
+.game-score:after{
+    content: 'Score';
+}
+.best-score:after{
+    content: 'Best';
+}
+.restart{
+    margin-top: 30px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 20px;
+    padding: 10px;
+    background: lighten($text-color, 20%);
+    cursor: pointer;
+    color: #fff;
+    text-transform: capitalize;
+    border-radius: $tile-border-radius;
+}
+@mixin game-field {
+    .game-container{
+
+        margin-top: $game-container-margin-top;
+        position: relative;
+        padding: $grid-spacing;
+
+        -webkit-touch-callout: none;
+        -ms-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -ms-touch-action: none;
+        touch-action: none;
+
+        background: $game-container-background;
+        border-radius: $tile-border-radius;
+        width: $field-width;
+        height: $field-width;
+        box-sizing: border-box;
+        .grid-container{
+            position: absolute;
+            z-index: 1;
+        }
+        .grid-row{
+            margin-bottom: $grid-spacing;
+            &:last-child{
+                margin-bottom: 0;
+            }
+            @include clearfix;
+        }
+        .grid-cell{
+            width: $tile-size;
+            height: $tile-size;
+            margin-right: $grid-spacing;
+            float: left;
+            border-radius: $tile-border-radius;
+            background: rgba($tile-color, .35);
+            &:last-child{
+                margin-right: 0;
+            }
+        }
+        .tile-container{
+            position: absolute;
+            z-index: 2;
+        }
+        .tile{
+            &, .tile-inner{
+                width: ($tile-size);
+                height: ($tile-size);
+                line-height: $tile-size + 10px;
+                text-align: center;
+            }
+            @for $i from 1 through $grid-row-cell{
+                @for $j from 1 through $grid-row-cell{
+                    &.tile-position-#{$i}-#{$j}{
+                        $iPos: floor(($tile-size + $grid-spacing) * ($i - 1));
+                        $jPos: floor(($tile-size + $grid-spacing) * ($j - 1));
+                        transform:translate($iPos, $jPos);
+                    }
+                }
+            }
+        }
+    }
+}
+@include game-field;
+.tile{
+    position: absolute;
+    .tile-inner{
+        border-radius: $tile-border-radius;
+        background: $tile-color;
+        text-align: center;
+        font-weight: bold;
+        z-index: 10;
+        font-size: 55px;
+    }
+    transition: $transition-speed ease-in-out;
+    $base: 2;
+    $exponent: 1;
+    $limit: 11;
+    $colors: false false, // 2
+               false false, // 4
+               #f78e48 true, // 8
+               #fc5e2e true, // 16
+               #ff3333 true, // 32
+               #ff0000 true, // 64
+               false true, // 128
+               false true, // 256
+               false true, // 512
+               false true, // 1024
+               false true; /* 2048*/
+    @while $exponent <= $limit{
+        $power: pow($base, $exponent);
+
+        &.tile-#{$power} .tile-inner{
+            $gold-percent: ($exponent - 1) / ($limit - 1) * 100;
+            $mixed-background: mix($tile-gold-color, $tile-color, $gold-percent);
+            $nth-color: nth($colors, $exponent);
+            $background: nth($nth-color, 1);
+            $bright-color: nth($nth-color, 2);
+            @if $background {
+                $mixed-background: mix($background, $mixed-background, 55%);
+            }
+            @if $bright-color {
+                color: $bright-text-color;
+            }
+            background: $mixed-background;
+            @if $power >= 100 and $power < 1000 {
+                font-size: 45px;
+                @include smaller($mobile){
+                    font-size: 25px;
+                }
+            } @else if $power >= 1000 {
+                font-size: 35px;
+                @include smaller($mobile){
+                    font-size: 15px;
+                }
+            }
+        }
+
+        $exponent: $exponent + 1;
+    }
+    &.tile-super .tile-inner{
+        color: $bright-text-color;
+        background: mix(#333, $tile-gold-color, 95%);
+        font-size: 30px;
+        @include smaller($mobile){
+            font-size: 10px;
+        }
+    }
+}
+@include smaller($mobile) {
+    $field-width: 280px;
+    $grid-spacing: 10px;
+    $grid-row-cell: 4;
+    $tile-size: ($field-width - $grid-spacing * ($grid-row-cell + 1)) / $grid-row-cell;
+    $tile-border-radius: 3px;
+    $game-container-margin-top: 17px;
+    html, body{
+        font-size: 15px;
+    }
+    body{
+        margin: 20px 0;
+        padding: 0 20px;
+    }
+    .container{
+        width: $field-width;
+        margin: 0 auto;
+    }
+    .title{
+        float: left;
+        width: 52%;
+        h1{
+            font-size: 27px;
+            margin-top: 15px;
+        }
+
+    }
+    .game-score, .best-score{
+        margin-top: 5px;
+        padding: 10px;
+        min-width: 40px;
+        font-size: 15px;
+        text-align: center;
+    }
+    .restart{
+        width: 90%;
+        padding: 10px 20px;
+        display: block;
+        margin-top: 5px;
+        font-size: 14px;
+        box-sizing: border-box;
+    }
+    .game-container{
+
+        margin-top: $game-container-margin-top;
+        position: relative;
+        padding: $grid-spacing;
+
+        -webkit-touch-callout: none;
+        -ms-touch-callout: none;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -ms-touch-action: none;
+        touch-action: none;
+
+        background: $game-container-background;
+        border-radius: $tile-border-radius;
+        width: $field-width;
+        height: $field-width;
+        box-sizing: border-box;
+        .grid-container{
+            position: absolute;
+            z-index: 1;
+        }
+        .grid-row{
+            margin-bottom: $grid-spacing;
+            &:last-child{
+                margin-bottom: 0;
+            }
+            @include clearfix;
+        }
+        .grid-cell{
+            width: $tile-size;
+            height: $tile-size;
+            margin-right: $grid-spacing;
+            float: left;
+            border-radius: $tile-border-radius;
+            background: rgba($tile-color, .35);
+            &:last-child{
+                margin-right: 0;
+            }
+        }
+        .tile-container{
+            position: absolute;
+            z-index: 2;
+        }
+        .tile{
+            &, .tile-inner{
+                width: ceil($tile-size);
+                height: ceil($tile-size);
+                line-height: $tile-size + 10px;
+            }
+            @for $i from 1 through $grid-row-cell{
+                @for $j from 1 through $grid-row-cell{
+                    &.tile-position-#{$i}-#{$j}{
+                        $iPos: floor(($tile-size + $grid-spacing) * ($i - 1));
+                        $jPos: floor(($tile-size + $grid-spacing) * ($j - 1));
+                        transfrom:translate($iPos, $jPos);
+                    }
+                }
+            }
+        }
+    }
+
+    .tile .tile-inner{
+        font-size: 35px;
+    }
+}
